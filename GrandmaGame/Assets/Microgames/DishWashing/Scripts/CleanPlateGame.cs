@@ -157,10 +157,13 @@ public class CleanPlateGame : MonoBehaviour
     {
         if (instructionText != null)
         {
-            instructionText.text = $"PRESS KEY: <color=green>{targetKeyName.ToUpper()}</color>\nProgress: {cleanProgress}/{requiredPresses}\nMistakes: {mistakeCount}/{maxMistakesAllowed}";
+            instructionText.text = $"PRESS KEY: <color=green>{targetKeyName.ToUpper()}</color>\n" +
+                                   $"Progress: {cleanProgress}/{requiredPresses}\n" +
+                                   $"Mistakes: {mistakeCount}/{maxMistakesAllowed}\n" +
+                                   $"Time Left: {Mathf.Max(0, timeRemaining):F1}s";
         }
     }
-
+    
     void cleantThePlate()
     {
         meshRenderer.material = cleanMaterial;
