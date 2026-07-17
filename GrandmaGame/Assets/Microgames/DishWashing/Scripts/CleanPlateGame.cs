@@ -8,13 +8,20 @@ public class CleanPlateGame : MonoBehaviour
     [SerializeField] private Material cleanMaterial;
     [SerializeField] private TextMeshProUGUI instructionText; 
 
+    [Header("Plate Models (Visual Swap)")]
+    [SerializeField] private Mesh brokenPlateMesh;     
+    [SerializeField] private Material brokenPlateMaterial; 
+
     [Header("Game Settings")]
     [SerializeField] private int requiredPresses = 5;
     [SerializeField] private float gameDuration = 8f; 
     [SerializeField] private float penaltyDuration = 1.5f; 
+    [SerializeField] private int maxMistakesAllowed = 2; 
 
+    private MeshFilter meshFilter;
     private MeshRenderer meshRenderer;
     private int cleanProgress = 0;
+    private int mistakeCount = 0; 
     private string targetKeyName; 
     
     private bool isClean = false;
@@ -30,6 +37,7 @@ public class CleanPlateGame : MonoBehaviour
     void Start()
     {
         meshRenderer = GetComponent<MeshRenderer>();
+        meshFilter = GetComponent<MeshFilter>();
         timeRemaining = gameDuration;
        
         if (instructionText != null)
@@ -50,6 +58,7 @@ public class CleanPlateGame : MonoBehaviour
     {
         gameActive = true;
         cleanProgress = 0;
+        mistakeCount = 0; 
         timeRemaining = gameDuration;
         penaltyTimer = 0f;
         getNewRandomKey();
@@ -59,31 +68,26 @@ public class CleanPlateGame : MonoBehaviour
     {
         if (!gameActive || isClean || gameFailed) return;
 
-        // 1. Handle Game Timer
         timeRemaining -= Time.deltaTime;
         if (timeRemaining <= 0)
         {
-            FailTheGame();
+            FailTheGame("TIME'S UP!\nPlate is still dirty.");
             return;
         }
 
-        // 2. Handle Penalty Cooldown Timer
         if (IsPenalized)
         {
             penaltyTimer -= Time.deltaTime;
             
-            // Keep text red and show countdown during penalty
             if (instructionText != null)
             {
-                instructionText.text = $"<color=red>JAMMED! WAIT!</color>\nTime Left: {Mathf.Max(0, timeRemaining):F1}s";
+                instructionText.text = $"<color=red>WRONG KEY! WAIT!</color>\nMistakes: {mistakeCount}/{maxMistakesAllowed}\nTime Left: {Mathf.Max(0, timeRemaining):F1}s";
             }
             return; 
         }
 
-        // 3. Constantly update the standard UI so the time ticks down smoothly
         UpdateUI();
 
-        // 4. Handle Inputs
         var keyboard = Keyboard.current;
         if (keyboard == null) return;
 
@@ -122,7 +126,25 @@ public class CleanPlateGame : MonoBehaviour
 
     void TriggerPenalty()
     {
-        penaltyTimer = penaltyDuration;
+        mistakeCount++;
+        
+        if (mistakeCount >= maxMistakesAllowed)
+        {
+            BreakThePlate();
+        }
+        else
+        {
+            penaltyTimer = penaltyDuration;
+        }
+    }
+
+    void BreakThePlate()
+    {
+        // Swap to the broken plate visuals
+        if (brokenPlateMesh != null) meshFilter.mesh = brokenPlateMesh;
+        if (brokenPlateMaterial != null) meshRenderer.material = brokenPlateMaterial;
+
+        FailTheGame("YOU BROKE THE PLATE!");
     }
 
     void getNewRandomKey()
@@ -135,7 +157,7 @@ public class CleanPlateGame : MonoBehaviour
     {
         if (instructionText != null)
         {
-            instructionText.text = $"MASH THIS KEY: <color=green>{targetKeyName.ToUpper()}</color>\nProgress: {cleanProgress}/{requiredPresses}\nTime Left: {Mathf.Max(0, timeRemaining):F1}s";
+            instructionText.text = $"PRESS KEY: <color=green>{targetKeyName.ToUpper()}</color>\nProgress: {cleanProgress}/{requiredPresses}\nMistakes: {mistakeCount}/{maxMistakesAllowed}";
         }
     }
 
@@ -147,18 +169,18 @@ public class CleanPlateGame : MonoBehaviour
         
         if (instructionText != null)
         {
-            instructionText.text = "<color=green> DISHES WASHED!</color>";
+            instructionText.text = "<color=green>DISHES WASHED!</color>";
         }
     }
 
-    void FailTheGame()
+    void FailTheGame(string failureMessage)
     {
         gameActive = false;
         gameFailed = true;
 
         if (instructionText != null)
         {
-            instructionText.text = "<color=red>TIME'S UP!\nPlate is still dirty.</color>";
+            instructionText.text = $"<color=red>{failureMessage}</color>";
         }
     }
 }

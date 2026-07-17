@@ -331,6 +331,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CleanPlateGame
   cleanMaterial: {fileID: 2100000, guid: 1550da277368a404681670265c9f66bf, type: 2}
   instructionText: {fileID: 7449072355278764148}
+  brokenPlateMesh: {fileID: -5854088795082504319, guid: 2a5c164e77f532e4589c696f6bf934b6, type: 3}
+  brokenPlateMaterial: {fileID: 2100000, guid: 1550da277368a404681670265c9f66bf, type: 2}
   requiredPresses: 5
   gameDuration: 8
   penaltyDuration: 1.5
+  maxMistakesAllowed: 2
